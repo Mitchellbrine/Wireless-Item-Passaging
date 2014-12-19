@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import mc.Mitchellbrine.wip.block.BlockRegistry;
+import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
 import mc.Mitchellbrine.wip.item.ItemRegistry;
 import mc.Mitchellbrine.wip.proxy.CommonProxy;
 import mc.Mitchellbrine.wip.util.References;
@@ -26,9 +27,11 @@ public class WirelessItemPassaging {
 
         logger.info("Starting pre-initialization for " + References.NAME);
 
-        proxy.registerStuff();
         BlockRegistry.init();
         ItemRegistry.init();
+        InventoryTypes.registerVanillaTypes();
+
+        proxy.registerStuff();
 
         logger.info("Finished pre-initialization for " + References.NAME);
 

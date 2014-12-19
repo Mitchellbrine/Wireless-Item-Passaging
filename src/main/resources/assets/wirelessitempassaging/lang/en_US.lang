@@ -1,0 +1,8 @@
+gps.coords.set=Coordinates set to %s, %s, %s
+
+conduit.coords.far=The coordinates you entered were too far away (%s > 50)
+conduit.coords.exact=The coordinates you entered matched those of the conduit
+
+tile.itemTransportConduit.name=Item Conduit
+
+item.wipGPS.name=GPS
