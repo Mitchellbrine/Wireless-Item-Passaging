@@ -1,29 +1,29 @@
 package mc.Mitchellbrine.wip.tileentity;
 
-import mc.Mitchellbrine.wip.WirelessItemPassaging;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryType;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
-import mc.Mitchellbrine.wip.network.NBTUpdatePacket;
-import mc.Mitchellbrine.wip.network.PacketHandler;
+import mc.Mitchellbrine.wip.util.ConfigUtils;
+import mc.Mitchellbrine.wip.util.ItemHelper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.Item;
+import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraft.tileentity.TileEntityHopper;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.common.util.ForgeDirection;
+
 
 /**
  * Created by Mitchellbrine on 2014.
  */
-public class TileEntityConduit extends TileEntity implements IInventory{
+public class TileEntityConduit extends TileEntity implements IInventory, ISidedInventory{
 
     private Vec3 takeFrom;
     private InventoryType type;
@@ -34,12 +34,16 @@ public class TileEntityConduit extends TileEntity implements IInventory{
     public void updateEntity() {
         super.updateEntity();
         calculateCurrentInventory();
-        takeSlot();
+        if (worldObj.getWorldTime() % ConfigUtils.delay == 0) {
+            takeSlot();
+        }
         outputToChest();
     }
 
     private void calculateCurrentInventory() {
         if (takeFrom != null) {
+            Vec3 location = Vec3.createVectorHelper(xCoord,yCoord,zCoord);
+            if (takeFrom.distanceTo(location) > ConfigUtils.range) return;
             Block takeFromBlock = worldObj.getBlock((int)takeFrom.xCoord,(int)takeFrom.yCoord,(int)takeFrom.zCoord);
             for (InventoryType type : InventoryTypes.types) {
                 for (Block block : type.getBlocks()) {
@@ -47,17 +51,14 @@ public class TileEntityConduit extends TileEntity implements IInventory{
                         if (this.type == type) break;
                         System.out.println("Now using the inventory type " + type.getUnlocalizedName() + " with " + type.getSlotAmount() + " slots!");
                         this.type = type;
-                        if (items != null) {
-                                if (items.length < type.getSlotAmount()) {
-                                    for (int i = items.length - 2; i < type.getSlotAmount(); i++) {
-                                        WirelessItemPassaging.logger.info(i + " | " + type.getSlotAmount());
-                                        if (items[i] != null) {
-                                            // TODO: Fix the items dropping on the ground
-                                        }
+                            if (items != null) {
+                                    for (ItemStack item : items) {
+                                            if (item != null) {
+                                                ItemHelper.dropItemInWorld(item, worldObj, xCoord, yCoord, zCoord);
+                                            }
                                     }
-                                }
-                        }
-                        items = new ItemStack[type.getSlotAmount()];
+                            }
+                            items = new ItemStack[type.getSlotAmount()];
                         break;
                     }
                 }
@@ -68,6 +69,8 @@ public class TileEntityConduit extends TileEntity implements IInventory{
 
     private void takeSlot() {
         if (takeFrom != null) {
+            Vec3 location = Vec3.createVectorHelper(xCoord,yCoord,zCoord);
+            if (takeFrom.distanceTo(location) > ConfigUtils.range) return;
             int x = (int)takeFrom.xCoord;
             int y = (int)takeFrom.yCoord;
             int z = (int)takeFrom.zCoord;
@@ -107,42 +110,21 @@ public class TileEntityConduit extends TileEntity implements IInventory{
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private void outputToChest() {
-        if (worldObj.getBlock(xCoord,yCoord + 1,zCoord) == Blocks.chest || worldObj.getBlock(xCoord,yCoord + 1,zCoord) == Blocks.trapped_chest) {
-            TileEntityChest te = (TileEntityChest) worldObj.getTileEntity(xCoord,yCoord + 1,zCoord);
-            if (te != null) {
-                if (items != null) {
-                    if (items.length <= te.getSizeInventory()) {
-                        for (int i = 0; i < this.items.length; i++) {
-                            if (this.items[i] != null) {
-                                if (te.getStackInSlot(i) == null) {
-                                    te.setInventorySlotContents(i, this.items[i]);
-                                    this.setInventorySlotContents(i, null);
-                                } else {
-                                    if (te.getStackInSlot(i).getItem() == this.items[i].getItem() && te.getStackInSlot(i).getItemDamage() == this.items[i].getItemDamage()) {
-                                        ItemStack stack = this.items[i];
-                                        te.setInventorySlotContents(i, new ItemStack(te.getStackInSlot(i).getItem(), te.getStackInSlot(i).stackSize + stack.stackSize, te.getStackInSlot(i).getItemDamage()));
-                                        this.setInventorySlotContents(i, null);
-                                    }
-                                }
-                            }
-                        }
-                    } else {
+            } else if (this.getInventoryType() == InventoryTypes.hopper) {
+                TileEntityHopper te = (TileEntityHopper)worldObj.getTileEntity(x,y,z);
+                if (te != null) {
+                    if (items != null) {
                         for (int i = 0; i < te.getSizeInventory(); i++) {
-                            if (this.items[i] != null) {
-                                if (te.getStackInSlot(i) == null) {
-                                    te.setInventorySlotContents(i, this.items[i]);
-                                    this.setInventorySlotContents(i, null);
-                                } else {
-                                    if (te.getStackInSlot(i).getItem() == this.items[i].getItem() && te.getStackInSlot(i).getItemDamage() == this.items[i].getItemDamage()) {
-                                        ItemStack stack = this.items[i];
-                                        te.setInventorySlotContents(i, new ItemStack(te.getStackInSlot(i).getItem(), te.getStackInSlot(i).stackSize + stack.stackSize, te.getStackInSlot(i).getItemDamage()));
-                                        this.setInventorySlotContents(i, null);
+                            if (te.getStackInSlot(i) != null) {
+                                if (this.getStackInSlot(i) != null) {
+                                    if (te.getStackInSlot(i).getItem() == this.getStackInSlot(i).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(i).getItemDamage()) {
+                                        ItemStack stack = te.getStackInSlot(i);
+                                        this.setInventorySlotContents(i, new ItemStack(this.getStackInSlot(i).getItem(), stack.stackSize + this.getStackInSlot(i).stackSize, this.getStackInSlot(i).getItemDamage()));
+                                        te.setInventorySlotContents(i, null);
                                     }
+                                } else {
+                                    this.setInventorySlotContents(i, te.getStackInSlot(i));
+                                    te.setInventorySlotContents(i, null);
                                 }
                             }
                         }
@@ -152,15 +134,55 @@ public class TileEntityConduit extends TileEntity implements IInventory{
         }
     }
 
+    private void outputToChest() {
+        TileEntity tileEntity = worldObj.getTileEntity(xCoord, yCoord + 1, zCoord);
+        if (tileEntity != null && tileEntity instanceof TileEntityChest) {
+            TileEntityChest te = (TileEntityChest) tileEntity;
+            if (items != null) {
+                if (items.length <= te.getSizeInventory()) {
+                    for (int i = 0; i < this.items.length; i++) {
+                        if (this.items[i] != null) {
+                            if (te.getStackInSlot(i) == null) {
+                                te.setInventorySlotContents(i, this.items[i]);
+                                this.setInventorySlotContents(i, null);
+                            } else {
+                                if (te.getStackInSlot(i).getItem() == this.items[i].getItem() && te.getStackInSlot(i).getItemDamage() == this.items[i].getItemDamage()) {
+                                    ItemStack stack = this.items[i];
+                                    te.setInventorySlotContents(i, new ItemStack(te.getStackInSlot(i).getItem(), te.getStackInSlot(i).stackSize + stack.stackSize, te.getStackInSlot(i).getItemDamage()));
+                                    this.setInventorySlotContents(i, null);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < te.getSizeInventory(); i++) {
+                        if (this.items[i] != null) {
+                            if (te.getStackInSlot(i) == null) {
+                                te.setInventorySlotContents(i, this.items[i]);
+                                this.setInventorySlotContents(i, null);
+                            } else {
+                                if (te.getStackInSlot(i).getItem() == this.items[i].getItem() && te.getStackInSlot(i).getItemDamage() == this.items[i].getItemDamage()) {
+                                    ItemStack stack = this.items[i];
+                                    te.setInventorySlotContents(i, new ItemStack(te.getStackInSlot(i).getItem(), te.getStackInSlot(i).stackSize + stack.stackSize, te.getStackInSlot(i).getItemDamage()));
+                                    this.setInventorySlotContents(i, null);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    }
+    }
+
     public Vec3 getPullLoc() {
         return this.takeFrom;
     }
 
     public void setGPSLoc(EntityPlayer player, Vec3 vector) {
         Vec3 location = Vec3.createVectorHelper(xCoord,yCoord,zCoord);
-        if (vector.distanceTo(location) > 50) {
+        if (vector.distanceTo(location) > ConfigUtils.range) {
             if (player.worldObj.isRemote) {
-                player.addChatComponentMessage(new ChatComponentTranslation("conduit.coords.far", (int)vector.distanceTo(location)));
+                player.addChatComponentMessage(new ChatComponentTranslation("conduit.coords.far", (int)vector.distanceTo(location),ConfigUtils.range));
             }
             return;
         } else if (vector.distanceTo(location) == 0.0) {
@@ -337,4 +359,27 @@ public class TileEntityConduit extends TileEntity implements IInventory{
 
     }
 
+    @Override
+    public int[] getAccessibleSlotsFromSide(int side) {
+        if (side == ForgeDirection.DOWN.ordinal()) {
+            if (type != null) {
+                return type.getSlots();
+            }
+        } else {
+            if (type != null) {
+                return type.getSlots();
+            }
+        }
+        return new int[0];
+    }
+
+    @Override
+    public boolean canInsertItem(int slot, ItemStack item, int side) {
+        return side != ForgeDirection.DOWN.ordinal() && items != null;
+    }
+
+    @Override
+    public boolean canExtractItem(int slot, ItemStack item, int side) {
+        return side == ForgeDirection.DOWN.ordinal() && items != null;
+    }
 }

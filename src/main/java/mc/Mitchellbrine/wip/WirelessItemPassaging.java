@@ -8,11 +8,16 @@ import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
 import mc.Mitchellbrine.wip.item.ItemRegistry;
 import mc.Mitchellbrine.wip.network.PacketHandler;
 import mc.Mitchellbrine.wip.proxy.CommonProxy;
+import mc.Mitchellbrine.wip.util.ConfigUtils;
+import mc.Mitchellbrine.wip.util.RecipeUtils;
 import mc.Mitchellbrine.wip.util.References;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
+import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
 
 /**
  * Created by Mitchellbrine on 2014.
@@ -44,6 +49,8 @@ public class WirelessItemPassaging {
         ItemRegistry.init();
         InventoryTypes.registerVanillaTypes();
         PacketHandler.init();
+        RecipeUtils.init();
+        ConfigUtils.init(new Configuration(new File(event.getModConfigurationDirectory(),"/WIP/config.cfg")));
 
         proxy.registerStuff();
 

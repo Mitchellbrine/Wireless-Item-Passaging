@@ -23,6 +23,7 @@ public class ItemGPS extends WIPItem {
     public ItemGPS() {
         super();
         this.setMaxStackSize(1);
+        this.setFull3D();
         this.setUnlocalizedName("wipGPS");
         this.setTextureName(References.RESOURCEPREFIX + "gps");
     }

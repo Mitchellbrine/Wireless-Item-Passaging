@@ -17,10 +17,12 @@ public class BlockRegistry {
     public static ArrayList<Block> blocks = new ArrayList<Block>();
 
     public static Block transportConduit;
+    public static Block netherDiamond;
 
     public static void init() {
 
         transportConduit = new TransportConduit();
+        netherDiamond = new BlockNetherDiamond();
 
         for (Block block : blocks) {
             GameRegistry.registerBlock(block,block.getUnlocalizedName().substring(5));

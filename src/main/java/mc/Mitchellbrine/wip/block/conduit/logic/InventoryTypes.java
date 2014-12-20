@@ -16,10 +16,12 @@ public class InventoryTypes {
 
     public static InventoryType furnace;
     public static InventoryType chest;
+    public static InventoryType hopper;
 
     public static void registerVanillaTypes() {
-        furnace = new InventoryType("furnace",3,new Block[]{Blocks.furnace,Blocks.lit_furnace}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/furnace.png"));
-        chest = new InventoryType("chest",27,new Block[]{Blocks.chest,Blocks.trapped_chest}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/chest.png"));
+        furnace = new InventoryType("furnace",3,new Block[]{Blocks.furnace,Blocks.lit_furnace}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/furnace.png"),2);
+        chest = new InventoryType("chest",27,new Block[]{Blocks.chest,Blocks.trapped_chest}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/chest.png"),0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26);
+        hopper = new InventoryType("hopper",5,new Block[]{Blocks.hopper}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/hopper.png"),0,1,2,3,4);
     }
 
     public static InventoryType fromString(String name) {
