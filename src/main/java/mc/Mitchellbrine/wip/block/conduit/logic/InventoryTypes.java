@@ -18,8 +18,8 @@ public class InventoryTypes {
     public static InventoryType chest;
 
     public static void registerVanillaTypes() {
-        furnace = new InventoryType("furnace",3,new Block[]{Blocks.furnace,Blocks.lit_furnace}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/furnace"));
-        chest = new InventoryType("chest",27,new Block[]{Blocks.chest,Blocks.trapped_chest}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/chest"));
+        furnace = new InventoryType("furnace",3,new Block[]{Blocks.furnace,Blocks.lit_furnace}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/furnace.png"));
+        chest = new InventoryType("chest",27,new Block[]{Blocks.chest,Blocks.trapped_chest}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/chest.png"));
     }
 
 }

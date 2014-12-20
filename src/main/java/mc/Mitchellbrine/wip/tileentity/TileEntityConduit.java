@@ -9,6 +9,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityFurnace;
@@ -23,7 +25,6 @@ public class TileEntityConduit extends TileEntity implements IInventory{
     private Vec3 takeFrom;
     private InventoryType type;
     private ItemStack[] items;
-    private int currentStack;
 
     public TileEntityConduit() {}
 
@@ -260,4 +261,70 @@ public class TileEntityConduit extends TileEntity implements IInventory{
     public boolean isItemValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
         return true;
     }
+
+    public void writeToNBT(NBTTagCompound nbt) {
+        super.writeToNBT(nbt);
+        if (this.getPullLoc() != null) {
+            nbt.setInteger("takeFromX", (int)this.getPullLoc().xCoord);
+            nbt.setInteger("takeFromY", (int)this.getPullLoc().yCoord);
+            nbt.setInteger("takeFromZ", (int)this.getPullLoc().zCoord);
+        }
+
+        if (this.getInventoryType() != null) {
+            nbt.setString("invType",this.getInventoryType().getUnlocalizedName());
+            nbt.setInteger("invSize",this.getInventoryType().getSlotAmount());
+        }
+
+
+        if (items != null) {
+            NBTTagList items = new NBTTagList();
+
+            for (int i = 0; i < this.items.length; i++) {
+                if (this.items[i] != null) {
+                    NBTTagCompound itemTag = new NBTTagCompound();
+                    itemTag.setByte("Slot",(byte)i);
+                    this.items[i].writeToNBT(itemTag);
+                    items.appendTag(itemTag);
+                }
+            }
+            nbt.setTag("Items",items);
+        }
+
+    }
+
+    public void readFromNBT(NBTTagCompound nbt) {
+        super.readFromNBT(nbt);
+        if (nbt.hasKey("takeFromX") && nbt.hasKey("takeFromY") && nbt.hasKey("takeFromZ")) {
+            this.takeFrom = Vec3.createVectorHelper(nbt.getInteger("takeFromX"),nbt.getInteger("takeFromY"),nbt.getInteger("takeFromZ"));
+            System.out.println(this.takeFrom);
+        }
+        if (nbt.hasKey("invType")) {
+            InventoryType newType = null;
+            for (InventoryType type : InventoryTypes.types) {
+                if (type.getUnlocalizedName().equalsIgnoreCase(nbt.getString("invType"))) {
+                    newType = type;
+                    System.out.println(newType);
+                    break;
+                }
+            }
+            this.type = newType;
+        }
+
+        if (nbt.hasKey("invSize")) {
+            NBTTagList items = nbt.getTagList("Items", 10);
+            this.items = new ItemStack[nbt.getInteger("invSize")];
+
+            for (int i = 0; i < items.tagCount();i++) {
+                NBTTagCompound itemTag = items.getCompoundTagAt(i);
+                byte slot = itemTag.getByte("Slot");
+
+                if (slot >= 0 && slot < this.items.length) {
+                    this.items[slot] = ItemStack.loadItemStackFromNBT(itemTag);
+                }
+
+            }
+        }
+
+    }
+
 }

@@ -45,11 +45,6 @@ public class TransportConduit extends WIPTEBlock {
                 }
                 return true;
             }
-        } else {
-            TileEntityConduit te = (TileEntityConduit) world.getTileEntity(x,y,z);
-            if (te != null) {
-
-            }
         }
         return false;
     }
