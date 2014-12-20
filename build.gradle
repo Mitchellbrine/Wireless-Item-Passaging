@@ -17,9 +17,9 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.0.0"
-group= "com.jamoorev.kroostmas" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "KroostmasCraft"
+version = "0.1Alpha"
+group= "mc.Mitchellbrine.wip" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "WirelessItemPassaging"
 
 minecraft {
     version = "1.7.10-10.13.2.1230"
