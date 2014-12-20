@@ -1,27 +1,40 @@
 package mc.Mitchellbrine.wip.tileentity;
 
+import mc.Mitchellbrine.wip.WirelessItemPassaging;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryType;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.Vec3;
 
 /**
  * Created by Mitchellbrine on 2014.
  */
-public class TileEntityConduit extends TileEntity{
+public class TileEntityConduit extends TileEntity implements IInventory{
 
     private Vec3 takeFrom;
     private InventoryType type;
     private ItemStack[] items;
+    private int currentStack;
 
     public TileEntityConduit() {}
 
     public void updateEntity() {
+        super.updateEntity();
+        calculateCurrentInventory();
+        takeSlot();
+        outputToChest();
+    }
+
+    private void calculateCurrentInventory() {
         if (takeFrom != null) {
             Block takeFromBlock = worldObj.getBlock((int)takeFrom.xCoord,(int)takeFrom.yCoord,(int)takeFrom.zCoord);
             for (InventoryType type : InventoryTypes.types) {
@@ -30,12 +43,15 @@ public class TileEntityConduit extends TileEntity{
                         if (this.type == type) break;
                         System.out.println("Now using the inventory type " + type.getUnlocalizedName() + " with " + type.getSlotAmount() + " slots!");
                         this.type = type;
-                        if (items != null && items.length < type.getSlotAmount()) {
-                            for (int i = items.length - 1;i < type.getSlotAmount();i++) {
-                                if (items[i] != null) {
-                                    // Drop item on ground
+                        if (items != null) {
+                                if (items.length < type.getSlotAmount()) {
+                                    for (int i = items.length - 2; i < type.getSlotAmount(); i++) {
+                                        WirelessItemPassaging.logger.info(i + " | " + type.getSlotAmount());
+                                        if (items[i] != null) {
+                                            // TODO: Fix the items dropping on the ground
+                                        }
+                                    }
                                 }
-                            }
                         }
                         items = new ItemStack[type.getSlotAmount()];
                         break;
@@ -44,7 +60,92 @@ public class TileEntityConduit extends TileEntity{
             }
 
         }
+    }
 
+    private void takeSlot() {
+        if (takeFrom != null) {
+            int x = (int)takeFrom.xCoord;
+            int y = (int)takeFrom.yCoord;
+            int z = (int)takeFrom.zCoord;
+            if (this.getInventoryType() == InventoryTypes.furnace) {
+                TileEntityFurnace te = (TileEntityFurnace)worldObj.getTileEntity(x,y,z);
+                if (te != null) {
+                    if (te.getStackInSlot(2) != null) {
+                        if (this.getStackInSlot(2) != null) {
+                            if (te.getStackInSlot(2).getItem() == this.getStackInSlot(2).getItem() && te.getStackInSlot(2).getItemDamage() == this.getStackInSlot(2).getItemDamage()) {
+                                ItemStack stack = te.getStackInSlot(2);
+                                this.setInventorySlotContents(2, new ItemStack(this.getStackInSlot(2).getItem(),stack.stackSize + this.getStackInSlot(2).stackSize,this.getStackInSlot(2).getItemDamage()));
+                                te.setInventorySlotContents(2, null);
+                            }
+                        } else {
+                            this.setInventorySlotContents(2, te.getStackInSlot(2));
+                            te.setInventorySlotContents(2, null);
+                        }
+                    }
+                }
+            } else if (this.getInventoryType() == InventoryTypes.chest) {
+                TileEntityChest te = (TileEntityChest)worldObj.getTileEntity(x,y,z);
+                if (te != null) {
+                    if (items != null) {
+                        for (int i = 0; i < te.getSizeInventory(); i++) {
+                            if (te.getStackInSlot(i) != null) {
+                                if (this.getStackInSlot(i) != null) {
+                                    if (te.getStackInSlot(i).getItem() == this.getStackInSlot(i).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(i).getItemDamage()) {
+                                        ItemStack stack = te.getStackInSlot(i);
+                                        this.setInventorySlotContents(i, new ItemStack(this.getStackInSlot(i).getItem(), stack.stackSize + this.getStackInSlot(i).stackSize, this.getStackInSlot(i).getItemDamage()));
+                                        te.setInventorySlotContents(i, null);
+                                    }
+                                } else {
+                                    this.setInventorySlotContents(i, te.getStackInSlot(i));
+                                    te.setInventorySlotContents(i, null);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void outputToChest() {
+        if (worldObj.getBlock(xCoord,yCoord + 1,zCoord) == Blocks.chest || worldObj.getBlock(xCoord,yCoord + 1,zCoord) == Blocks.trapped_chest) {
+            TileEntityChest te = (TileEntityChest) worldObj.getTileEntity(xCoord,yCoord + 1,zCoord);
+            if (te != null) {
+                if (items != null) {
+                    if (items.length <= te.getSizeInventory()) {
+                        for (int i = 0; i < this.items.length; i++) {
+                            if (this.items[i] != null) {
+                                if (te.getStackInSlot(i) == null) {
+                                    te.setInventorySlotContents(i, this.items[i]);
+                                    this.setInventorySlotContents(i, null);
+                                } else {
+                                    if (te.getStackInSlot(i).getItem() == this.items[i].getItem() && te.getStackInSlot(i).getItemDamage() == this.items[i].getItemDamage()) {
+                                        ItemStack stack = this.items[i];
+                                        te.setInventorySlotContents(i, new ItemStack(te.getStackInSlot(i).getItem(), te.getStackInSlot(i).stackSize + stack.stackSize, te.getStackInSlot(i).getItemDamage()));
+                                        this.setInventorySlotContents(i, null);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        for (int i = 0; i < te.getSizeInventory(); i++) {
+                            if (this.items[i] != null) {
+                                if (te.getStackInSlot(i) == null) {
+                                    te.setInventorySlotContents(i, this.items[i]);
+                                    this.setInventorySlotContents(i, null);
+                                } else {
+                                    if (te.getStackInSlot(i).getItem() == this.items[i].getItem() && te.getStackInSlot(i).getItemDamage() == this.items[i].getItemDamage()) {
+                                        ItemStack stack = this.items[i];
+                                        te.setInventorySlotContents(i, new ItemStack(te.getStackInSlot(i).getItem(), te.getStackInSlot(i).stackSize + stack.stackSize, te.getStackInSlot(i).getItemDamage()));
+                                        this.setInventorySlotContents(i, null);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public Vec3 getPullLoc() {
@@ -67,5 +168,96 @@ public class TileEntityConduit extends TileEntity{
         takeFrom = vector;
     }
 
+    public InventoryType getInventoryType() {
+        return this.type;
+    }
 
+
+    @Override
+    public int getSizeInventory() {
+        if (this.items != null) {
+            return this.items.length;
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public ItemStack getStackInSlot(int slot) {
+        if (items != null) {
+            return this.items[slot];
+        }
+        return null;
+    }
+
+    @Override
+    public ItemStack decrStackSize(int slot, int amount) {
+        if (this.items[slot] != null) {
+            ItemStack stack;
+            if (this.items[slot].stackSize <= amount) {
+                stack = this.items[slot].splitStack(amount);
+                this.items[slot] = null;
+                this.markDirty();
+                return stack;
+            } else {
+                stack = this.items[slot].splitStack(amount);
+                if (this.items[slot].stackSize == 0) {
+                    this.items[slot] = null;
+                }
+                this.markDirty();
+                return stack;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public ItemStack getStackInSlotOnClosing(int slot) {
+        if (this.items[slot] != null) {
+            return this.items[slot];
+        }
+        return null;
+    }
+
+    @Override
+    public void setInventorySlotContents(int slot, ItemStack stack) {
+        if (this.items != null) {
+            this.items[slot] = stack;
+            if (stack != null && stack.stackSize > this.getInventoryStackLimit()) {
+                stack.stackSize = this.getInventoryStackLimit();
+            }
+            this.markDirty();
+        }
+    }
+
+    @Override
+    public String getInventoryName() {
+        return "Item Conduit";
+    }
+
+    @Override
+    public boolean hasCustomInventoryName() {
+        return false;
+    }
+
+    @Override
+    public int getInventoryStackLimit() {
+        return 64;
+    }
+
+    @Override
+    public boolean isUseableByPlayer(EntityPlayer p_70300_1_) {
+        return true;
+    }
+
+    @Override
+    public void openInventory() {}
+
+    @Override
+    public void closeInventory() {}
+
+    @Override
+    public boolean isItemValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
+        return true;
+    }
 }

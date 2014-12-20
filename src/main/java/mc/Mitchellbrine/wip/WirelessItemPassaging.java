@@ -17,6 +17,9 @@ import org.apache.logging.log4j.Logger;
 @Mod(modid=References.MODID,name=References.NAME,version=References.VERSION)
 public class WirelessItemPassaging {
 
+    @Mod.Instance
+    public static WirelessItemPassaging instance;
+
     @SidedProxy(clientSide = "mc.Mitchellbrine.wip.proxy.ClientProxy",serverSide = "mc.Mitchellbrine.wip.proxy.CommonProxy")
     public static CommonProxy proxy;
 
