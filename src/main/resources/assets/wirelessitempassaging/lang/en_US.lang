@@ -8,6 +8,8 @@ conduit.inventory.type=Inv Type
 
 tile.itemTransportConduit.name=Item Conduit
 
+itemGroup.WirelessItemPassaging=Wireless Item Passaging (W.I.P)
+
 item.wipGPS.name=GPS
 
 gui.conduit.name=Item Conduit

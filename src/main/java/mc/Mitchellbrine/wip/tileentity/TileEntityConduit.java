@@ -3,8 +3,11 @@ package mc.Mitchellbrine.wip.tileentity;
 import mc.Mitchellbrine.wip.WirelessItemPassaging;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryType;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
+import mc.Mitchellbrine.wip.network.NBTUpdatePacket;
+import mc.Mitchellbrine.wip.network.PacketHandler;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
@@ -173,6 +176,13 @@ public class TileEntityConduit extends TileEntity implements IInventory{
         return this.type;
     }
 
+    public void setTakeFrom(Vec3 vec3) {
+        this.takeFrom = vec3;
+    }
+
+    public void setType(InventoryType type) {
+        this.type = type;
+    }
 
     @Override
     public int getSizeInventory() {
@@ -267,7 +277,7 @@ public class TileEntityConduit extends TileEntity implements IInventory{
         if (this.getPullLoc() != null) {
             nbt.setInteger("takeFromX", (int)this.getPullLoc().xCoord);
             nbt.setInteger("takeFromY", (int)this.getPullLoc().yCoord);
-            nbt.setInteger("takeFromZ", (int)this.getPullLoc().zCoord);
+            nbt.setInteger("takeFromZ", (int) this.getPullLoc().zCoord);
         }
 
         if (this.getInventoryType() != null) {
@@ -295,7 +305,7 @@ public class TileEntityConduit extends TileEntity implements IInventory{
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
         if (nbt.hasKey("takeFromX") && nbt.hasKey("takeFromY") && nbt.hasKey("takeFromZ")) {
-            this.takeFrom = Vec3.createVectorHelper(nbt.getInteger("takeFromX"),nbt.getInteger("takeFromY"),nbt.getInteger("takeFromZ"));
+            this.takeFrom = Vec3.createVectorHelper(nbt.getInteger("takeFromX"), nbt.getInteger("takeFromY"), nbt.getInteger("takeFromZ"));
             System.out.println(this.takeFrom);
         }
         if (nbt.hasKey("invType")) {
@@ -314,7 +324,7 @@ public class TileEntityConduit extends TileEntity implements IInventory{
             NBTTagList items = nbt.getTagList("Items", 10);
             this.items = new ItemStack[nbt.getInteger("invSize")];
 
-            for (int i = 0; i < items.tagCount();i++) {
+            for (int i = 0; i < items.tagCount(); i++) {
                 NBTTagCompound itemTag = items.getCompoundTagAt(i);
                 byte slot = itemTag.getByte("Slot");
 

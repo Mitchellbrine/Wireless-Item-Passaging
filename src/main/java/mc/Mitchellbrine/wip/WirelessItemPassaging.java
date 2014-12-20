@@ -6,8 +6,11 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import mc.Mitchellbrine.wip.block.BlockRegistry;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
 import mc.Mitchellbrine.wip.item.ItemRegistry;
+import mc.Mitchellbrine.wip.network.PacketHandler;
 import mc.Mitchellbrine.wip.proxy.CommonProxy;
 import mc.Mitchellbrine.wip.util.References;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,6 +22,13 @@ public class WirelessItemPassaging {
 
     @Mod.Instance
     public static WirelessItemPassaging instance;
+
+    public static CreativeTabs tab = new CreativeTabs(CreativeTabs.getNextID(),References.MODID) {
+        @Override
+        public Item getTabIconItem() {
+            return ItemRegistry.gps;
+        }
+    };
 
     @SidedProxy(clientSide = "mc.Mitchellbrine.wip.proxy.ClientProxy",serverSide = "mc.Mitchellbrine.wip.proxy.CommonProxy")
     public static CommonProxy proxy;
@@ -33,6 +43,7 @@ public class WirelessItemPassaging {
         BlockRegistry.init();
         ItemRegistry.init();
         InventoryTypes.registerVanillaTypes();
+        PacketHandler.init();
 
         proxy.registerStuff();
 

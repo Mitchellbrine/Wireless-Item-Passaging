@@ -4,12 +4,15 @@ import mc.Mitchellbrine.wip.WirelessItemPassaging;
 import mc.Mitchellbrine.wip.block.base.WIPTEBlock;
 import mc.Mitchellbrine.wip.client.gui.GuiHandler;
 import mc.Mitchellbrine.wip.item.ItemRegistry;
+import mc.Mitchellbrine.wip.network.NBTUpdatePacket;
+import mc.Mitchellbrine.wip.network.PacketHandler;
 import mc.Mitchellbrine.wip.tileentity.TileEntityConduit;
 import mc.Mitchellbrine.wip.util.ItemHelper;
 import mc.Mitchellbrine.wip.util.References;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
@@ -41,6 +44,12 @@ public class TransportConduit extends WIPTEBlock {
         if (!player.isSneaking()) {
             if (player.getCurrentEquippedItem() == null || player.getCurrentEquippedItem().getItem() != ItemRegistry.gps) {
                 if (!world.isRemote) {
+                    if (player instanceof EntityPlayerMP) {
+                        TileEntityConduit te = (TileEntityConduit) world.getTileEntity(x,y,z);
+                        if (te != null) {
+                            PacketHandler.INSTANCE.sendTo(new NBTUpdatePacket(x, y, z, te.getPullLoc(), te.getInventoryType()), (EntityPlayerMP) player);
+                        }
+                    }
                     player.openGui(WirelessItemPassaging.instance, GuiHandler.IDS.Conduit, world, x, y, z);
                 }
                 return true;

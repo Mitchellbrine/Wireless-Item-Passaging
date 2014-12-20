@@ -22,4 +22,27 @@ public class InventoryTypes {
         chest = new InventoryType("chest",27,new Block[]{Blocks.chest,Blocks.trapped_chest}, new ResourceLocation(References.RESOURCEPREFIX + "textures/types/chest.png"));
     }
 
+    public static InventoryType fromString(String name) {
+        for (InventoryType type : types) {
+            if (type.getUnlocalizedName().equalsIgnoreCase(name)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    public static InventoryType fromInteger(int id) {
+        if (Block.getBlockById(id) != null) {
+            Block block = Block.getBlockById(id);
+            for (InventoryType type : types) {
+                for (Block block1 : type.getBlocks()) {
+                    if (block1 == block) return type;
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("Object id does not exist!");
+        }
+        return null;
+    }
+
 }
