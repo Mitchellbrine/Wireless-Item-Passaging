@@ -94,9 +94,17 @@ public class NBTUpdatePacket implements IMessage, IMessageHandler<NBTUpdatePacke
     @Override
     public IMessage onMessage(NBTUpdatePacket message, MessageContext ctx) {
         TileEntityConduit te = (TileEntityConduit) Minecraft.getMinecraft().theWorld.getTileEntity(message.x,message.y,message.z);
-        te.setTakeFrom(message.takeFrom);
-        te.setType(message.type);
-        te.setInventory(message.items);
+        if (te != null) {
+            if (message.takeFrom != null) {
+                te.setTakeFrom(message.takeFrom);
+            }
+            if (message.type != null) {
+                te.setType(message.type);
+            }
+            if (message.items != null) {
+                te.setInventory(message.items);
+            }
+        }
         return null;
     }
 }

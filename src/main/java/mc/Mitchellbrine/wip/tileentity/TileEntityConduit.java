@@ -121,10 +121,12 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                                 ItemStack stack = te.getStackInSlot(2);
                                 this.setInventorySlotContents(2, new ItemStack(this.getStackInSlot(2).getItem(),stack.stackSize + this.getStackInSlot(2).stackSize,this.getStackInSlot(2).getItemDamage()));
                                 te.setInventorySlotContents(2, null);
+                                sendPacketToClient();
                             }
                         } else {
                             this.setInventorySlotContents(2, te.getStackInSlot(2));
                             te.setInventorySlotContents(2, null);
+                            sendPacketToClient();
                         }
                     }
                 }
@@ -135,33 +137,39 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                         for (int i = 0; i < te.getSizeInventory(); i++) {
                                 if (te.getStackInSlot(i) != null) {
                                     if (te.getStackInSlot(i).stackSize > 1) {
-                                        WirelessItemPassaging.logger.error(te.getStackInSlot(i));
                                         for (int ii = 0; ii < te.getStackInSlot(i).stackSize; ii++) {
                                             int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(i));
+                                            if (getSlot == -1) continue;
                                             if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
                                                 ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(i).getItemDamage());
                                                 stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
                                                 this.setInventorySlotContents(getSlot, stack);
                                                 te.decrStackSize(i, 1);
+                                                sendPacketToClient();
                                             } else {
                                                 ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), 1, te.getStackInSlot(i).getItemDamage());
                                                 stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
                                                 this.setInventorySlotContents(getSlot, stack);
                                                 te.decrStackSize(i, 1);
+                                                sendPacketToClient();
                                             }
                                         }
                                     } else {
                                         int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(i));
+                                        if (getSlot == -1) return;
                                         if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
                                             ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(i).getItemDamage());
                                             stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
                                             this.setInventorySlotContents(getSlot, stack);
                                             te.decrStackSize(i, 1);
+                                            sendPacketToClient();
+
                                         } else {
                                             ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), 1, te.getStackInSlot(i).getItemDamage());
                                             stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
                                             this.setInventorySlotContents(getSlot, stack);
                                             te.decrStackSize(i, 1);
+                                            sendPacketToClient();
                                         }
                                     }
                                 }
@@ -179,10 +187,12 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                                         ItemStack stack = te.getStackInSlot(i);
                                         this.setInventorySlotContents(i, new ItemStack(this.getStackInSlot(i).getItem(), stack.stackSize + this.getStackInSlot(i).stackSize, this.getStackInSlot(i).getItemDamage()));
                                         te.setInventorySlotContents(i, null);
+                                        sendPacketToClient();
                                     }
                                 } else {
                                     this.setInventorySlotContents(i, te.getStackInSlot(i));
                                     te.setInventorySlotContents(i, null);
+                                    sendPacketToClient();
                                 }
                             }
                         }
@@ -204,10 +214,12 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                                 if (te.getStackInSlot(ItemHelper.getFirstEmptySlot(te, this.items[i])) == null) {
                                     te.setInventorySlotContents(ItemHelper.getFirstEmptySlot(te, this.items[i]), this.items[i]);
                                     this.setInventorySlotContents(i, null);
+                                    sendPacketToClient();
                                 } else {
                                     ItemStack stack = this.items[i];
                                     te.setInventorySlotContents(ItemHelper.getFirstEmptySlot(te, this.items[i]), new ItemStack(te.getStackInSlot(ItemHelper.getFirstEmptySlot(te,this.items[i])).getItem(), te.getStackInSlot(ItemHelper.getFirstEmptySlot(te,this.items[i])).stackSize + stack.stackSize, te.getStackInSlot(ItemHelper.getFirstEmptySlot(te,this.items[i])).getItemDamage()));
                                     this.setInventorySlotContents(i, null);
+                                    sendPacketToClient();
                                 }
                             }
                         }
@@ -218,11 +230,13 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                             if (te.getStackInSlot(i) == null) {
                                 te.setInventorySlotContents(i, this.items[i]);
                                 this.setInventorySlotContents(i, null);
+                                sendPacketToClient();
                             } else {
                                 if (te.getStackInSlot(i).getItem() == this.items[i].getItem() && te.getStackInSlot(i).getItemDamage() == this.items[i].getItemDamage() && te.getStackInSlot(i).getTagCompound() == this.items[i].getTagCompound()) {
                                     ItemStack stack = this.items[i];
                                     te.setInventorySlotContents(i, new ItemStack(te.getStackInSlot(i).getItem(), te.getStackInSlot(i).stackSize + stack.stackSize, te.getStackInSlot(i).getItemDamage()));
                                     this.setInventorySlotContents(i, null);
+                                    sendPacketToClient();
                                 }
                             }
                         }
@@ -278,7 +292,6 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
             }
             return amount;
         } else {
-            System.out.println("Items == null");
         }
         return 0;
     }
@@ -288,6 +301,19 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
             int amount = 0;
             for (int i = 0; i < this.items.length;i++) {
                 if (items[i] != null) amount += items[i].stackSize;
+            }
+            return amount;
+        }
+        return 0;
+    }
+
+    public int getStackedCount() {
+        if (items != null) {
+            int amount = 0;
+            for (int i = 0; i < this.items.length;i++) {
+                if (items[i] != null) {
+                    if (items[i].stackSize == items[i].getItem().getItemStackLimit(null)) amount += this.getInventoryStackLimit(); else amount += items[i].stackSize;
+                }
             }
             return amount;
         }
@@ -319,6 +345,7 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                 stack = this.items[slot].splitStack(amount);
                 this.items[slot] = null;
                 this.markDirty();
+                sendPacketToClient();
                 return stack;
             } else {
                 stack = this.items[slot].splitStack(amount);
@@ -326,6 +353,7 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                     this.items[slot] = null;
                 }
                 this.markDirty();
+                sendPacketToClient();
                 return stack;
             }
         }
@@ -416,14 +444,14 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
         super.readFromNBT(nbt);
         if (nbt.hasKey("takeFromX") && nbt.hasKey("takeFromY") && nbt.hasKey("takeFromZ")) {
             this.takeFrom = Vec3.createVectorHelper(nbt.getInteger("takeFromX"), nbt.getInteger("takeFromY"), nbt.getInteger("takeFromZ"));
-            System.out.println(this.takeFrom);
+            WirelessItemPassaging.logger.debug(this.takeFrom);
         }
         if (nbt.hasKey("invType")) {
             InventoryType newType = null;
             for (InventoryType type : InventoryTypes.types) {
                 if (type.getUnlocalizedName().equalsIgnoreCase(nbt.getString("invType"))) {
                     newType = type;
-                    System.out.println(newType);
+                    WirelessItemPassaging.logger.debug(newType);
                     break;
                 }
             }

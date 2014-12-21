@@ -7,6 +7,7 @@ import mc.Mitchellbrine.wip.util.References;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
@@ -51,6 +52,10 @@ public class GuiConduit extends GuiContainer {
             fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.slots.filled") + ": " + te.getNonNullStacks() + " / " + type.getSlotAmount(),6,yStart,0xFFFFFF);
             yStart += 10;
             fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.items.filled") + ": " + te.getItemCount() + " / " + type.getSlotAmount() * 64,6,yStart,0xFFFFFF);
+            yStart += 10;
+            if (te.getStackedCount() == type.getSlotAmount() * 64) {
+                fontRendererObj.drawStringWithShadow(EnumChatFormatting.BOLD + StatCollector.translateToLocal("conduit.items.full"),6,yStart,0xFF0000);
+            }
         } else {
             fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.inventory.type") + ": Not assigned",6,yStart,0xFFFFFF);
         }

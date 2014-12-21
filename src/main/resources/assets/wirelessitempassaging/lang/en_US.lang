@@ -8,6 +8,7 @@ conduit.inventory.type=Inv Type
 
 conduit.slots.filled=Slots Filled
 conduit.items.filled=Items Filled
+conduit.items.full=FULL! Please empty!
 
 tile.itemTransportConduit.name=Item Conduit
 tile.blockNetherDiamond.name=Wither-Infused Diamond Block
@@ -21,3 +22,4 @@ gui.conduit.name=Item Conduit
 
 invtype.chest=Chest
 invtype.furnace=Furnace
+invtype.hopper=Hopper
