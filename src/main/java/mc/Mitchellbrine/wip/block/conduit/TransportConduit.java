@@ -47,7 +47,7 @@ public class TransportConduit extends WIPTEBlock {
                     if (player instanceof EntityPlayerMP) {
                         TileEntityConduit te = (TileEntityConduit) world.getTileEntity(x,y,z);
                         if (te != null) {
-                            PacketHandler.INSTANCE.sendTo(new NBTUpdatePacket(x, y, z, te.getPullLoc(), te.getInventoryType()), (EntityPlayerMP) player);
+                            PacketHandler.INSTANCE.sendTo(new NBTUpdatePacket(x, y, z, te.getPullLoc(), te.getInventoryType(),te.getInventory()), (EntityPlayerMP) player);
                         }
                     }
                 }

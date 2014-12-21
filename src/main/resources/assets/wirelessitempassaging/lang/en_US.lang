@@ -6,6 +6,9 @@ conduit.coords.null=Please set the coordinates!
 
 conduit.inventory.type=Inv Type
 
+conduit.slots.filled=Slots Filled
+conduit.items.filled=Items Filled
+
 tile.itemTransportConduit.name=Item Conduit
 tile.blockNetherDiamond.name=Wither-Infused Diamond Block
 

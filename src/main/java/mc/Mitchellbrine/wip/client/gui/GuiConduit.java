@@ -47,9 +47,15 @@ public class GuiConduit extends GuiContainer {
         if (te.getInventoryType() != null) {
             InventoryType type = te.getInventoryType();
             fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.inventory.type") + ": " + te.getInventoryType().getLocalizedName() + " | " + te.getInventoryType().getSlotAmount() + " slots",6,yStart,0xFFFFFF);
+            yStart += 10;
+            fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.slots.filled") + ": " + te.getNonNullStacks() + " / " + type.getSlotAmount(),6,yStart,0xFFFFFF);
+            yStart += 10;
+            fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.items.filled") + ": " + te.getItemCount() + " / " + type.getSlotAmount() * 64,6,yStart,0xFFFFFF);
         } else {
             fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.inventory.type") + ": Not assigned",6,yStart,0xFFFFFF);
         }
+
+
     }
 
     @Override
