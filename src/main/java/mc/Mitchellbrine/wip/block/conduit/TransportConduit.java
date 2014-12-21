@@ -50,8 +50,8 @@ public class TransportConduit extends WIPTEBlock {
                             PacketHandler.INSTANCE.sendTo(new NBTUpdatePacket(x, y, z, te.getPullLoc(), te.getInventoryType()), (EntityPlayerMP) player);
                         }
                     }
-                    player.openGui(WirelessItemPassaging.instance, GuiHandler.IDS.Conduit, world, x, y, z);
                 }
+                player.openGui(WirelessItemPassaging.instance, GuiHandler.IDS.Conduit, world, x, y, z);
                 return true;
             }
         }

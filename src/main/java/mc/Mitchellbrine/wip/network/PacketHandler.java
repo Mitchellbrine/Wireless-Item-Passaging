@@ -10,7 +10,7 @@ import mc.Mitchellbrine.wip.util.References;
  */
 public class PacketHandler {
 
-    public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(References.MODID);
+    public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel("WIP");
 
     public static void init() {
         INSTANCE.registerMessage(NBTUpdatePacket.class, NBTUpdatePacket.class, 0, Side.CLIENT);

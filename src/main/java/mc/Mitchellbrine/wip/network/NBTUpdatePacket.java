@@ -11,6 +11,8 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Vec3;
 
+import java.io.IOException;
+
 /**
  * Created by Mitchellbrine on 2014.
  */
@@ -32,19 +34,19 @@ public class NBTUpdatePacket implements IMessage, IMessageHandler<NBTUpdatePacke
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        x = buf.readInt();
-        y = buf.readInt();
-        z = buf.readInt();
-        if (buf.readBoolean()) {
-            int tfX, tfY, tfZ;
-            tfX = buf.readInt();
-            tfY = buf.readInt();
-            tfZ = buf.readInt();
-        takeFrom = Vec3.createVectorHelper(tfX,tfY,tfZ);
-        }
-        if (buf.readBoolean()) {
-            type = InventoryTypes.fromInteger(buf.readInt());
-        }
+            x = buf.readInt();
+            y = buf.readInt();
+            z = buf.readInt();
+            if (buf.readBoolean()) {
+                int tfX, tfY, tfZ;
+                tfX = buf.readInt();
+                tfY = buf.readInt();
+                tfZ = buf.readInt();
+                takeFrom = Vec3.createVectorHelper(tfX, tfY, tfZ);
+            }
+            if (buf.readBoolean()) {
+                type = InventoryTypes.fromInteger(buf.readInt());
+            }
     }
 
     @Override

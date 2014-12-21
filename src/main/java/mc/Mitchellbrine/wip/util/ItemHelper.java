@@ -1,6 +1,7 @@
 package mc.Mitchellbrine.wip.util;
 
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -43,6 +44,15 @@ public class ItemHelper {
                 }
             }
         }
+    }
+
+    public static int getFirstEmptySlot(IInventory inventory,ItemStack stack) {
+        for (int i = 0; i < inventory.getSizeInventory();i++) {
+            if (inventory.getStackInSlot(i) == null) return i;
+            else
+                if (inventory.getStackInSlot(i).getItem() == stack.getItem() && inventory.getStackInSlot(i).getItemDamage() == stack.getItemDamage() && inventory.getStackInSlot(i).getTagCompound() == stack.getTagCompound()) return i;
+        }
+        return -1;
     }
 
 }

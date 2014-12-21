@@ -14,14 +14,15 @@ public class InventoryType {
     private int slots;
     private Block[] blocks;
     private ResourceLocation textureName;
-    private int[] slotsToTakeFrom;
+    private int[] slotsToTakeFrom,slotsToImport;
 
-    public InventoryType(String name, int slots, Block[] acceptableBlocks, ResourceLocation texture,int... slotsArray) {
+    public InventoryType(String name, int slots, Block[] acceptableBlocks, ResourceLocation texture,int[] slotsArray,int[] slotsToImport) {
         this.unlocalizedName = "invtype." + name;
         this.slots = slots;
         this.blocks = acceptableBlocks;
         this.textureName = texture;
         this.slotsToTakeFrom = slotsArray;
+        this.slotsToImport = slotsToImport;
         WirelessItemPassaging.logger.info("Registered inventory type " + this.getUnlocalizedName() + " with " + this.getSlotAmount());
         InventoryTypes.types.add(this);
     }
@@ -48,6 +49,10 @@ public class InventoryType {
 
     public int[] getSlots() {
         return this.slotsToTakeFrom;
+    }
+
+    public int[] getSlotsToImport() {
+        return this.slotsToImport;
     }
 
 }
