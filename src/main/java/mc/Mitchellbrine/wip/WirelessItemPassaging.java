@@ -49,8 +49,8 @@ public class WirelessItemPassaging {
         ItemRegistry.init();
         InventoryTypes.registerVanillaTypes();
         PacketHandler.init();
-        RecipeUtils.init();
         ConfigUtils.init(new Configuration(new File(event.getModConfigurationDirectory(),"/WIP/config.cfg")));
+        RecipeUtils.init();
 
         proxy.registerStuff();
 

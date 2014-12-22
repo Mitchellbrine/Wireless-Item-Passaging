@@ -1,8 +1,10 @@
 package mc.Mitchellbrine.wip.tileentity;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import mc.Mitchellbrine.wip.WirelessItemPassaging;
 import mc.Mitchellbrine.wip.block.BlockRegistry;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryType;
+import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypeChangeEvent;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
 import mc.Mitchellbrine.wip.network.NBTUpdatePacket;
 import mc.Mitchellbrine.wip.network.PacketHandler;
@@ -11,6 +13,7 @@ import mc.Mitchellbrine.wip.util.ItemHelper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -20,6 +23,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 
 
@@ -52,12 +56,25 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
             if (takeFrom.distanceTo(location) > ConfigUtils.range) return;
             Block takeFromBlock = worldObj.getBlock((int) takeFrom.xCoord, (int) takeFrom.yCoord, (int) takeFrom.zCoord);
             if (takeFromBlock != BlockRegistry.transportConduit) {
+                if (takeFromBlock == Blocks.air) {
+                    if (items != null) {
+                        for (ItemStack item : items) {
+                            if (item != null) {
+                                ItemHelper.dropItemInWorld(item, worldObj, xCoord, yCoord, zCoord);
+                            }
+                        }
+                    }
+                    this.type = null;
+                    this.items = null;
+                    return;
+                }
+                InventoryType newType = null;
                 for (InventoryType type : InventoryTypes.types) {
                     for (Block block : type.getBlocks()) {
                         if (block == takeFromBlock) {
                             if (this.type == type) break;
                             System.out.println("Now using the inventory type " + type.getUnlocalizedName() + " with " + type.getSlotAmount() + " slots!");
-                            this.type = type;
+                            newType = type;
                             if (items != null) {
                                 for (ItemStack item : items) {
                                     if (item != null) {
@@ -65,7 +82,8 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                                     }
                                 }
                             }
-                            items = new ItemStack[type.getSlotAmount()];
+                            this.type = newType;
+                            this.items = new ItemStack[type.getSlotAmount()];
                             break;
                         }
                     }
@@ -91,7 +109,7 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
         }
         }
 
-    private void sendPacketToClient() {
+    public void sendPacketToClient() {
         if (takeFrom != null && type != null) {
             if (!worldObj.isRemote) {
                     if (worldObj.getClosestPlayer(xCoord, yCoord, zCoord, 500) != null) {
@@ -109,43 +127,47 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
         if (takeFrom != null) {
             Vec3 location = Vec3.createVectorHelper(xCoord,yCoord,zCoord);
             if (takeFrom.distanceTo(location) > ConfigUtils.range) return;
+            if (worldObj.isBlockIndirectlyGettingPowered(xCoord,yCoord,zCoord)) return;
             int x = (int)takeFrom.xCoord;
             int y = (int)takeFrom.yCoord;
             int z = (int)takeFrom.zCoord;
-            if (this.getInventoryType() == InventoryTypes.furnace) {
-                IInventory te = (IInventory)worldObj.getTileEntity(x,y,z);
-                if (te != null) {
-                    if (te.getStackInSlot(2) != null) {
-                        if (this.getStackInSlot(2) != null) {
-                            if (te.getStackInSlot(2).getItem() == this.getStackInSlot(2).getItem() && te.getStackInSlot(2).getItemDamage() == this.getStackInSlot(2).getItemDamage()) {
-                                ItemStack stack = te.getStackInSlot(2);
-                                this.setInventorySlotContents(2, new ItemStack(this.getStackInSlot(2).getItem(),stack.stackSize + this.getStackInSlot(2).stackSize,this.getStackInSlot(2).getItemDamage()));
-                                te.setInventorySlotContents(2, null);
-                                sendPacketToClient();
-                            }
-                        } else {
-                            this.setInventorySlotContents(2, te.getStackInSlot(2));
-                            te.setInventorySlotContents(2, null);
-                            sendPacketToClient();
-                        }
-                    }
-                }
-            } else if (this.getInventoryType() == InventoryTypes.chest) {
-                IInventory te = (IInventory)worldObj.getTileEntity(x,y,z);
-                if (te != null) {
-                    if (items != null) {
-                        for (int i = 0; i < te.getSizeInventory(); i++) {
-                                if (te.getStackInSlot(i) != null) {
-                                    if (te.getStackInSlot(i).stackSize > 1) {
-                                        for (int ii = 0; ii < te.getStackInSlot(i).stackSize; ii++) {
+
+            if (this.getInventoryType() != null) {
+                switch (this.getInventoryType().getTransferType()) {
+                    case 0:
+                        IInventory te = (IInventory) worldObj.getTileEntity(x, y, z);
+                        if (te != null) {
+                            if (items != null) {
+                                for (int i = 0; i < te.getSizeInventory(); i++) {
+                                    if (te.getStackInSlot(i) != null) {
+                                        if (te.getStackInSlot(i).stackSize > 1) {
+                                            for (int ii = 0; ii < te.getStackInSlot(i).stackSize; ii++) {
+                                                int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(i));
+                                                if (getSlot == -1) continue;
+                                                if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                                    ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(i).getItemDamage());
+                                                    stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
+                                                    this.setInventorySlotContents(getSlot, stack);
+                                                    te.decrStackSize(i, 1);
+                                                    sendPacketToClient();
+                                                } else {
+                                                    ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), 1, te.getStackInSlot(i).getItemDamage());
+                                                    stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
+                                                    this.setInventorySlotContents(getSlot, stack);
+                                                    te.decrStackSize(i, 1);
+                                                    sendPacketToClient();
+                                                }
+                                            }
+                                        } else {
                                             int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(i));
-                                            if (getSlot == -1) continue;
+                                            if (getSlot == -1) return;
                                             if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
                                                 ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(i).getItemDamage());
                                                 stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
                                                 this.setInventorySlotContents(getSlot, stack);
                                                 te.decrStackSize(i, 1);
                                                 sendPacketToClient();
+
                                             } else {
                                                 ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), 1, te.getStackInSlot(i).getItemDamage());
                                                 stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
@@ -154,16 +176,167 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                                                 sendPacketToClient();
                                             }
                                         }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case 1:
+                        for (int i : this.getInventoryType().getSlots()) {
+                            IInventory te1 = (IInventory) worldObj.getTileEntity(x, y, z);
+                        if (te1 != null) {
+                            if (te1.getStackInSlot(i) != null) {
+                                if (te1.getStackInSlot(i).stackSize > 1) {
+                                    for (int ii = 0; ii < te1.getStackInSlot(i).stackSize; ii++) {
+                                        int getSlot = ItemHelper.getFirstEmptySlot(this, te1.getStackInSlot(i));
+                                        if (getSlot == -1) continue;
+                                        if (this.getStackInSlot(getSlot) != null && te1.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te1.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te1.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                            ItemStack stack = new ItemStack(te1.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te1.getStackInSlot(i).getItemDamage());
+                                            stack.setTagCompound(te1.getStackInSlot(i).getTagCompound());
+                                            this.setInventorySlotContents(getSlot, stack);
+                                            te1.decrStackSize(i, 1);
+                                            sendPacketToClient();
+                                        } else {
+                                            ItemStack stack = new ItemStack(te1.getStackInSlot(i).getItem(), 1, te1.getStackInSlot(i).getItemDamage());
+                                            stack.setTagCompound(te1.getStackInSlot(i).getTagCompound());
+                                            this.setInventorySlotContents(getSlot, stack);
+                                            te1.decrStackSize(i, 1);
+                                            sendPacketToClient();
+                                        }
+                                    }
+                                } else {
+                                    int getSlot = ItemHelper.getFirstEmptySlot(this, te1.getStackInSlot(i));
+                                    if (getSlot == -1) return;
+                                    if (this.getStackInSlot(getSlot) != null && te1.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te1.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te1.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                        ItemStack stack = new ItemStack(te1.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te1.getStackInSlot(i).getItemDamage());
+                                        stack.setTagCompound(te1.getStackInSlot(i).getTagCompound());
+                                        this.setInventorySlotContents(getSlot, stack);
+                                        te1.decrStackSize(i, 1);
+                                        sendPacketToClient();
+
                                     } else {
+                                        ItemStack stack = new ItemStack(te1.getStackInSlot(i).getItem(), 1, te1.getStackInSlot(i).getItemDamage());
+                                        stack.setTagCompound(te1.getStackInSlot(i).getTagCompound());
+                                        this.setInventorySlotContents(getSlot, stack);
+                                        te1.decrStackSize(i, 1);
+                                        sendPacketToClient();
+                                    }
+                                }
+                            }
+                        }
+                        }
+                        break;
+                    case 2:
+                        MinecraftForge.EVENT_BUS.post(new InventoryTypeChangeEvent(this,this.getInventoryType(),x,y,z));
+                        break;
+                    default:
+                        IInventory teDefault = (IInventory) worldObj.getTileEntity(x, y, z);
+                        if (teDefault != null) {
+                            if (items != null) {
+                                for (int i = 0; i < teDefault.getSizeInventory(); i++) {
+                                    if (teDefault.getStackInSlot(i) != null) {
+                                        if (teDefault.getStackInSlot(i).stackSize > 1) {
+                                            for (int ii = 0; ii < teDefault.getStackInSlot(i).stackSize; ii++) {
+                                                int getSlot = ItemHelper.getFirstEmptySlot(this, teDefault.getStackInSlot(i));
+                                                if (getSlot == -1) continue;
+                                                if (this.getStackInSlot(getSlot) != null && teDefault.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && teDefault.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && teDefault.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                                    ItemStack stack = new ItemStack(teDefault.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, teDefault.getStackInSlot(i).getItemDamage());
+                                                    stack.setTagCompound(teDefault.getStackInSlot(i).getTagCompound());
+                                                    this.setInventorySlotContents(getSlot, stack);
+                                                    teDefault.decrStackSize(i, 1);
+                                                    sendPacketToClient();
+                                                } else {
+                                                    ItemStack stack = new ItemStack(teDefault.getStackInSlot(i).getItem(), 1, teDefault.getStackInSlot(i).getItemDamage());
+                                                    stack.setTagCompound(teDefault.getStackInSlot(i).getTagCompound());
+                                                    this.setInventorySlotContents(getSlot, stack);
+                                                    teDefault.decrStackSize(i, 1);
+                                                    sendPacketToClient();
+                                                }
+                                            }
+                                        } else {
+                                            int getSlot = ItemHelper.getFirstEmptySlot(this, teDefault.getStackInSlot(i));
+                                            if (getSlot == -1) return;
+                                            if (this.getStackInSlot(getSlot) != null && teDefault.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && teDefault.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && teDefault.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                                ItemStack stack = new ItemStack(teDefault.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, teDefault.getStackInSlot(i).getItemDamage());
+                                                stack.setTagCompound(teDefault.getStackInSlot(i).getTagCompound());
+                                                this.setInventorySlotContents(getSlot, stack);
+                                                teDefault.decrStackSize(i, 1);
+                                                sendPacketToClient();
+
+                                            } else {
+                                                ItemStack stack = new ItemStack(teDefault.getStackInSlot(i).getItem(), 1, teDefault.getStackInSlot(i).getItemDamage());
+                                                stack.setTagCompound(teDefault.getStackInSlot(i).getTagCompound());
+                                                this.setInventorySlotContents(getSlot, stack);
+                                                teDefault.decrStackSize(i, 1);
+                                                sendPacketToClient();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+
+            /*if (this.getInventoryType() == InventoryTypes.furnace) {
+                IInventory te = (IInventory)worldObj.getTileEntity(x,y,z);
+                if (te != null) {
+                    if (te.getStackInSlot(2) != null) {
+                        if (te.getStackInSlot(2).stackSize > 1) {
+                            for (int ii = 0; ii < te.getStackInSlot(2).stackSize; ii++) {
+                                int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(2));
+                                if (getSlot == -1) continue;
+                                if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(2).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(2).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(2).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                    ItemStack stack = new ItemStack(te.getStackInSlot(2).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(2).getItemDamage());
+                                    stack.setTagCompound(te.getStackInSlot(2).getTagCompound());
+                                    this.setInventorySlotContents(getSlot, stack);
+                                    te.decrStackSize(2, 1);
+                                    sendPacketToClient();
+                                } else {
+                                    ItemStack stack = new ItemStack(te.getStackInSlot(2).getItem(), 1, te.getStackInSlot(2).getItemDamage());
+                                    stack.setTagCompound(te.getStackInSlot(2).getTagCompound());
+                                    this.setInventorySlotContents(getSlot, stack);
+                                    te.decrStackSize(2, 1);
+                                    sendPacketToClient();
+                                }
+                            }
+                        } else {
+                            int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(2));
+                            if (getSlot == -1) return;
+                            if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(2).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(2).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(2).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                ItemStack stack = new ItemStack(te.getStackInSlot(2).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(2).getItemDamage());
+                                stack.setTagCompound(te.getStackInSlot(2).getTagCompound());
+                                this.setInventorySlotContents(getSlot, stack);
+                                te.decrStackSize(2, 1);
+                                sendPacketToClient();
+
+                            } else {
+                                ItemStack stack = new ItemStack(te.getStackInSlot(2).getItem(), 1, te.getStackInSlot(2).getItemDamage());
+                                stack.setTagCompound(te.getStackInSlot(2).getTagCompound());
+                                this.setInventorySlotContents(getSlot, stack);
+                                te.decrStackSize(2, 1);
+                                sendPacketToClient();
+                            }
+                        }
+                    }
+                }
+            } else if (this.getInventoryType() != null) {
+                IInventory te = (IInventory)worldObj.getTileEntity(x,y,z);
+                if (te != null) {
+                    if (items != null) {
+                        for (int i = 0; i < te.getSizeInventory(); i++) {
+                            if (te.getStackInSlot(i) != null) {
+                                if (te.getStackInSlot(i).stackSize > 1) {
+                                    for (int ii = 0; ii < te.getStackInSlot(i).stackSize; ii++) {
                                         int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(i));
-                                        if (getSlot == -1) return;
+                                        if (getSlot == -1) continue;
                                         if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
                                             ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(i).getItemDamage());
                                             stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
                                             this.setInventorySlotContents(getSlot, stack);
                                             te.decrStackSize(i, 1);
                                             sendPacketToClient();
-
                                         } else {
                                             ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), 1, te.getStackInSlot(i).getItemDamage());
                                             stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
@@ -172,37 +345,34 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                                             sendPacketToClient();
                                         }
                                     }
-                                }
-                        }
-                    }
-                }
-            } else if (this.getInventoryType() == InventoryTypes.hopper) {
-                IInventory te = (IInventory)worldObj.getTileEntity(x,y,z);
-                if (te != null) {
-                    if (items != null) {
-                        for (int i = 0; i < te.getSizeInventory(); i++) {
-                            if (te.getStackInSlot(i) != null) {
-                                if (this.getStackInSlot(i) != null) {
-                                    if (te.getStackInSlot(i).getItem() == this.getStackInSlot(i).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(i).getItemDamage()) {
-                                        ItemStack stack = te.getStackInSlot(i);
-                                        this.setInventorySlotContents(i, new ItemStack(this.getStackInSlot(i).getItem(), stack.stackSize + this.getStackInSlot(i).stackSize, this.getStackInSlot(i).getItemDamage()));
-                                        te.setInventorySlotContents(i, null);
+                                } else {
+                                    int getSlot = ItemHelper.getFirstEmptySlot(this, te.getStackInSlot(i));
+                                    if (getSlot == -1) return;
+                                    if (this.getStackInSlot(getSlot) != null && te.getStackInSlot(i).getItem() == this.getStackInSlot(getSlot).getItem() && te.getStackInSlot(i).getItemDamage() == this.getStackInSlot(getSlot).getItemDamage() && te.getStackInSlot(i).getTagCompound() == this.getStackInSlot(getSlot).getTagCompound() && this.getStackInSlot(getSlot).stackSize < this.getStackInSlot(getSlot).getItem().getItemStackLimit(null) && this.getStackInSlot(getSlot).stackSize < this.getInventoryStackLimit()) {
+                                        ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), this.getStackInSlot(getSlot).stackSize + 1, te.getStackInSlot(i).getItemDamage());
+                                        stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
+                                        this.setInventorySlotContents(getSlot, stack);
+                                        te.decrStackSize(i, 1);
+                                        sendPacketToClient();
+
+                                    } else {
+                                        ItemStack stack = new ItemStack(te.getStackInSlot(i).getItem(), 1, te.getStackInSlot(i).getItemDamage());
+                                        stack.setTagCompound(te.getStackInSlot(i).getTagCompound());
+                                        this.setInventorySlotContents(getSlot, stack);
+                                        te.decrStackSize(i, 1);
                                         sendPacketToClient();
                                     }
-                                } else {
-                                    this.setInventorySlotContents(i, te.getStackInSlot(i));
-                                    te.setInventorySlotContents(i, null);
-                                    sendPacketToClient();
                                 }
                             }
                         }
                     }
                 }
-            }
+            } */
         }
     }
 
     private void outputToChest() {
+        //if (worldObj.isBlockIndirectlyGettingPowered(xCoord,yCoord,zCoord)) return;
         TileEntity tileEntity = worldObj.getTileEntity(xCoord, yCoord + 1, zCoord);
         if (tileEntity != null && tileEntity instanceof IInventory) {
             IInventory te = (IInventory) tileEntity;
@@ -479,7 +649,7 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
     public int[] getAccessibleSlotsFromSide(int side) {
         if (side == ForgeDirection.DOWN.ordinal()) {
             if (type != null) {
-                return type.getSlots();
+                return new int[type.getSlotAmount()];
             }
         } else {
             if (type != null) {

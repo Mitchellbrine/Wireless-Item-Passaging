@@ -6,6 +6,8 @@ conduit.coords.null=Please set the coordinates!
 
 conduit.inventory.type=Inv Type
 
+conduit.transport.blocked=Powered | Transport Canceled
+
 conduit.slots.filled=Slots Filled
 conduit.items.filled=Items Filled
 conduit.items.full=FULL! Please empty!
@@ -23,3 +25,5 @@ gui.conduit.name=Item Conduit
 invtype.chest=Chest
 invtype.furnace=Furnace
 invtype.hopper=Hopper
+invtype.brewingStand=Brewing Stand
+invtype.dispenser=Dispenser/Dropper
