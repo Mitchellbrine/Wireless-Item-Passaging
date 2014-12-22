@@ -1,5 +1,6 @@
 package mc.Mitchellbrine.wip.block.conduit.logic;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import mc.Mitchellbrine.wip.util.References;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;

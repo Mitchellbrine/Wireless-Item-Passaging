@@ -51,14 +51,16 @@ public class NBTUpdatePacket implements IMessage, IMessageHandler<NBTUpdatePacke
             }
             if (buf.readBoolean()) {
                 type = InventoryTypes.fromInteger(buf.readInt());
-            }
-            if (buf.readBoolean()) {
-                ArrayList<ItemStack> itemStacks = new ArrayList<ItemStack>();
-                for (int i = 0; i < type.getSlotAmount();i++) {
-                    itemStacks.add(ByteBufUtils.readItemStack(buf));
+                if (buf.readBoolean()) {
+                    if (type != null) {
+                        ArrayList<ItemStack> itemStacks = new ArrayList<ItemStack>();
+                        for (int i = 0; i < type.getSlotAmount(); i++) {
+                            itemStacks.add(ByteBufUtils.readItemStack(buf));
+                        }
+                        items = new ItemStack[type.getSlotAmount()];
+                        items = itemStacks.toArray(items);
+                    }
                 }
-                items = new ItemStack[type.getSlotAmount()];
-                items = itemStacks.toArray(items);
             }
     }
 
@@ -84,7 +86,7 @@ public class NBTUpdatePacket implements IMessage, IMessageHandler<NBTUpdatePacke
         if (items != null) {
             buf.writeBoolean(true);
             for (ItemStack stack : items) {
-                ByteBufUtils.writeItemStack(buf,stack);
+                    ByteBufUtils.writeItemStack(buf, stack);
             }
         } else {
             buf.writeBoolean(false);

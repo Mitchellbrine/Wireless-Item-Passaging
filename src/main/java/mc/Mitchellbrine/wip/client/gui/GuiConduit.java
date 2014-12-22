@@ -78,7 +78,7 @@ public class GuiConduit extends GuiContainer {
             GL11.glColor4f(1F,1F,1F,1F);
             Minecraft.getMinecraft().renderEngine.bindTexture(te.getInventoryType().getTextureName());
             drawTexturedRect(te.getInventoryType().getTextureName(), 0, 10, 0, 10, xSize / 4, ySize / 4, xSize / 4, ySize / 4,1.0);
-            fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.inventory.type") + ": " + te.getInventoryType().getLocalizedName() + " | " + te.getInventoryType().getSlotAmount() + " slots",4,4,0xFFFFFF);
+            fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.inventory.type") + ": " + te.getInventoryType().getLocalizedName() + " | " + te.getInventory().length + " slots",4,4,0xFFFFFF);
         } else {
             fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("conduit.inventory.type") + ": Not assigned",4,4,0xFFFFFF);
         }

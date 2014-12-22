@@ -70,21 +70,24 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
                 }
                 InventoryType newType = null;
                 for (InventoryType type : InventoryTypes.types) {
-                    for (Block block : type.getBlocks()) {
+                    for (int i = 0; i < type.getBlocks().length;i++/*Block block : type.getBlocks() */) {
+                        Block block = type.getBlocks()[i];
                         if (block == takeFromBlock) {
-                            if (this.type == type) break;
-                            System.out.println("Now using the inventory type " + type.getUnlocalizedName() + " with " + type.getSlotAmount() + " slots!");
-                            newType = type;
-                            if (items != null) {
-                                for (ItemStack item : items) {
-                                    if (item != null) {
-                                        ItemHelper.dropItemInWorld(item, worldObj, xCoord, yCoord, zCoord);
+                            if (type.getMetadata() == null || type.getMetadata()[i] == -1 || type.getMetadata()[i] == worldObj.getBlockMetadata((int) takeFrom.xCoord, (int) takeFrom.yCoord, (int) takeFrom.zCoord)) {
+                                if (this.type == type) break;
+                                System.out.println("Now using the inventory type " + type.getUnlocalizedName() + " with " + type.getSlotAmount() + " slots!");
+                                newType = type;
+                                if (items != null) {
+                                    for (ItemStack item : items) {
+                                        if (item != null) {
+                                            ItemHelper.dropItemInWorld(item, worldObj, xCoord, yCoord, zCoord);
+                                        }
                                     }
                                 }
+                                this.type = newType;
+                                this.items = new ItemStack[type.getSlotAmount()];
+                                break;
                             }
-                            this.type = newType;
-                            this.items = new ItemStack[type.getSlotAmount()];
-                            break;
                         }
                     }
                 }

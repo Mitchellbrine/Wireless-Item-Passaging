@@ -15,7 +15,7 @@ conduit.items.full=FULL! Please empty!
 tile.itemTransportConduit.name=Item Conduit
 tile.blockNetherDiamond.name=Wither-Infused Diamond Block
 
-itemGroup.WirelessItemPassaging=Wireless Item Passaging (W.I.P)
+itemGroup.WirelessItemPassaging=Wireless Item Passaging (W.I.P.)
 
 item.wipGPS.name=GPS
 item.wipCore.name=Wireless Transport Core
@@ -27,3 +27,11 @@ invtype.furnace=Furnace
 invtype.hopper=Hopper
 invtype.brewingStand=Brewing Stand
 invtype.dispenser=Dispenser/Dropper
+
+invtype.tiCon.craftingStation=Crafting Station
+invtype.tiCon.slabFurnace=Slab Furnace
+invtype.tiCon.smeltery=Smeltery
+
+invtype.ironchest.ironchest=Iron Chest
+invtype.ironchest.goldchest=Gold Chest
+invtype.ironchest.diamondchest=Diamond Chest

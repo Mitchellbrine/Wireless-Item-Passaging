@@ -1,10 +1,16 @@
 package mc.Mitchellbrine.wip;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import mc.Mitchellbrine.wip.block.BlockRegistry;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
+import mc.Mitchellbrine.wip.compat.types.IronChestTypes;
+import mc.Mitchellbrine.wip.compat.types.TiConTypes;
 import mc.Mitchellbrine.wip.item.ItemRegistry;
 import mc.Mitchellbrine.wip.network.PacketHandler;
 import mc.Mitchellbrine.wip.proxy.CommonProxy;
@@ -56,6 +62,18 @@ public class WirelessItemPassaging {
 
         logger.info("Finished pre-initialization for " + References.NAME);
 
+    }
+
+    @Optional.Method(modid="IronChest")
+    @Mod.EventHandler
+    public void modCompatIC(FMLInitializationEvent event) {
+        IronChestTypes.registerIronChestCompatibility();
+    }
+
+    @Optional.Method(modid="TConstruct")
+    @Mod.EventHandler
+    public void modCompatTiCon(FMLInitializationEvent event) {
+        TiConTypes.registerTiConCompatibility();
     }
 
 }
