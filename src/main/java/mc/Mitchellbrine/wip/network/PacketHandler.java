@@ -14,6 +14,7 @@ public class PacketHandler {
 
     public static void init() {
         INSTANCE.registerMessage(NBTUpdatePacket.class, NBTUpdatePacket.class, 0, Side.CLIENT);
+        INSTANCE.registerMessage(FilterChangeTypePacket.class,FilterChangeTypePacket.class,1,Side.SERVER);
     }
 
 }

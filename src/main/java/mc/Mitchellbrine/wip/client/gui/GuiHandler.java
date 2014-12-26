@@ -2,6 +2,7 @@ package mc.Mitchellbrine.wip.client.gui;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 import mc.Mitchellbrine.wip.container.ContainerConduit;
+import mc.Mitchellbrine.wip.container.ContainerFilter;
 import mc.Mitchellbrine.wip.tileentity.TileEntityConduit;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
@@ -14,6 +15,7 @@ public class GuiHandler implements IGuiHandler{
 
     public static class IDS {
         public static final int Conduit = 0;
+        public static final int ItemFilter = 1;
     }
 
     @Override
@@ -23,6 +25,8 @@ public class GuiHandler implements IGuiHandler{
             switch (ID) {
                 case IDS.Conduit:
                     return new ContainerConduit(player);
+                case IDS.ItemFilter:
+                    return new ContainerFilter((TileEntityConduit)entity,player);
             }
         }
         return null;
@@ -35,6 +39,8 @@ public class GuiHandler implements IGuiHandler{
             switch (ID) {
                 case IDS.Conduit:
                     return new GuiConduit(player, (TileEntityConduit)entity);
+                case IDS.ItemFilter:
+                    return new GuiFilter(player, (TileEntityConduit)entity);
             }
         }
         return null;

@@ -54,6 +54,12 @@ public class TransportConduit extends WIPTEBlock {
                 player.openGui(WirelessItemPassaging.instance, GuiHandler.IDS.Conduit, world, x, y, z);
                 return true;
             }
+        } else {
+            if (player.getCurrentEquippedItem() == null || player.getCurrentEquippedItem().getItem() != ItemRegistry.gps) {
+                /*if (!world.isRemote) {
+                } */
+                player.openGui(WirelessItemPassaging.instance, GuiHandler.IDS.ItemFilter,world,x,y,z);
+            }
         }
         return false;
     }

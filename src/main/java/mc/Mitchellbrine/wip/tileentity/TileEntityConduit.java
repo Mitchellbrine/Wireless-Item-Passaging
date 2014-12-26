@@ -6,6 +6,7 @@ import mc.Mitchellbrine.wip.block.BlockRegistry;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryType;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypeChangeEvent;
 import mc.Mitchellbrine.wip.block.conduit.logic.InventoryTypes;
+import mc.Mitchellbrine.wip.container.IPhantomGui;
 import mc.Mitchellbrine.wip.network.NBTUpdatePacket;
 import mc.Mitchellbrine.wip.network.PacketHandler;
 import mc.Mitchellbrine.wip.util.ConfigUtils;
@@ -30,13 +31,20 @@ import net.minecraftforge.common.util.ForgeDirection;
 /**
  * Created by Mitchellbrine on 2014.
  */
-public class TileEntityConduit extends TileEntity implements IInventory, ISidedInventory{
+public class TileEntityConduit extends TileEntity implements IInventory, ISidedInventory,IPhantomGui {
 
     private Vec3 takeFrom;
     private InventoryType type;
     private ItemStack[] items;
+    private ItemStack[] filter;
+    private boolean filterInstalled;
+    private int filterType;
 
-    public TileEntityConduit() {}
+    public TileEntityConduit() {
+        filter = new ItemStack[9];
+        filterInstalled = false;
+        filterType = 0;
+    }
 
     public void updateEntity() {
         super.updateEntity();
@@ -596,6 +604,7 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
             nbt.setInteger("invSize",this.getInventoryType().getSlotAmount());
         }
 
+        nbt.setBoolean("filterInstalled",this.filterInstalled);
 
         if (items != null) {
             NBTTagList items = new NBTTagList();
@@ -610,6 +619,20 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
             }
             nbt.setTag("Items",items);
         }
+
+        NBTTagList items = new NBTTagList();
+
+        for (int i = 0; i < this.filter.length; i++) {
+            if (this.filter[i] != null) {
+                NBTTagCompound itemTag = new NBTTagCompound();
+                itemTag.setByte("Slot",(byte)i);
+                this.filter[i].writeToNBT(itemTag);
+                items.appendTag(itemTag);
+            }
+        }
+        nbt.setTag("Filter-Items",items);
+
+        nbt.setInteger("FilterType",this.filterType);
 
     }
 
@@ -646,6 +669,24 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
             }
         }
 
+        if (nbt.hasKey("Filter-Items")) {
+            NBTTagList items = nbt.getTagList("Filter-Items",10);
+            this.filter = new ItemStack[9];
+
+            for (int i = 0; i < items.tagCount();i++) {
+                NBTTagCompound itemTag = items.getCompoundTagAt(i);
+                byte slot = itemTag.getByte("Slot");
+
+                if (slot >= 0 && slot < this.filter.length) {
+                    this.filter[slot] = ItemStack.loadItemStackFromNBT(itemTag);
+                }
+            }
+        }
+
+        if (nbt.hasKey("FilterType")) {
+            this.filterType = nbt.getInteger("FilterType");
+        }
+
     }
 
     @Override
@@ -670,5 +711,64 @@ public class TileEntityConduit extends TileEntity implements IInventory, ISidedI
     @Override
     public boolean canExtractItem(int slot, ItemStack item, int side) {
         return side == ForgeDirection.DOWN.ordinal() && items != null;
+    }
+
+    @Override
+    public ItemStack getFakeStack(int i) {
+        if (this.filter[i] != null) {
+            return this.filter[i];
+        }
+        return null;
+    }
+
+    @Override
+    public ItemStack decrFakeStack(int slot, int amount) {
+        if (this.filter[slot] != null) {
+            ItemStack stack;
+            if (this.filter[slot].stackSize <= amount) {
+                stack = this.filter[slot].splitStack(amount);
+                this.filter[slot] = null;
+                this.markDirty();
+                sendPacketToClient();
+                return stack;
+            } else {
+                stack = this.filter[slot].splitStack(amount);
+                if (this.filter[slot].stackSize == 0) {
+                    this.filter[slot] = null;
+                }
+                this.markDirty();
+                sendPacketToClient();
+                return stack;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public ItemStack getFakeStackSlotOnClosing(int slot) {
+        if (this.filter[slot] != null) {
+            return this.filter[slot];
+        }
+        return null;
+    }
+
+    @Override
+    public void setFakeSlotContents(int slot, ItemStack stack) {
+        if (this.filter != null) {
+            this.filter[slot] = stack;
+            if (stack != null && stack.stackSize > this.getInventoryStackLimit()) {
+                stack.stackSize = this.getInventoryStackLimit();
+            }
+            this.markDirty();
+        }
+    }
+
+    public int getFilterType() {
+        return this.filterType;
+    }
+
+    public int setFilterType(int type) {
+        this.filterType = type;
+        return this.filterType;
     }
 }

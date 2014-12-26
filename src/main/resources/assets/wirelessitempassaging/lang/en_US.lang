@@ -22,6 +22,9 @@ item.wipCore.name=Wireless Transport Core
 
 gui.conduit.name=Item Conduit
 
+gui.filter.black=Blacklist
+gui.filter.white=Whitelist
+
 invtype.chest=Chest
 invtype.furnace=Furnace
 invtype.hopper=Hopper
