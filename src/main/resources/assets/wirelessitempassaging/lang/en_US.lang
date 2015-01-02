@@ -12,6 +12,9 @@ conduit.slots.filled=Slots Filled
 conduit.items.filled=Items Filled
 conduit.items.full=FULL! Please empty!
 
+conduit.module.nonExist=It looks like a module needs to be installed for this to work
+conduit.module.installed.filter=Module Installed: Filter
+
 tile.itemTransportConduit.name=Item Conduit
 tile.blockNetherDiamond.name=Wither-Infused Diamond Block
 
@@ -19,6 +22,8 @@ itemGroup.WirelessItemPassaging=Wireless Item Passaging (W.I.P.)
 
 item.wipGPS.name=GPS
 item.wipCore.name=Wireless Transport Core
+item.wipModule.name=Conduit Module (Blank)
+item.wipModuleFilter.name=Conduit Module (Filter)
 
 gui.conduit.name=Item Conduit
 

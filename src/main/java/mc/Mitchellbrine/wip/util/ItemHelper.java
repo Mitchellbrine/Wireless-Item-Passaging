@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -51,6 +52,29 @@ public class ItemHelper {
                 if (inventory.getStackInSlot(i).getItem() == stack.getItem() && inventory.getStackInSlot(i).getItemDamage() == stack.getItemDamage() && inventory.getStackInSlot(i).getTagCompound() == stack.getTagCompound() && inventory.getStackInSlot(i).stackSize < inventory.getStackInSlot(i).getItem().getItemStackLimit(null) && inventory.getStackInSlot(i).stackSize < inventory.getInventoryStackLimit()) return i;
         }
         return -1;
+    }
+
+    public static ArrayList<ItemStack> getArrayListFromArray(ItemStack[] stacks) {
+        ArrayList<ItemStack> stacks1 = new ArrayList<ItemStack>();
+        for (ItemStack stack : stacks) {
+            stacks1.add(stack);
+        }
+        return stacks1;
+    }
+
+    public static boolean hasAMatch(ItemStack[] array, ItemStack stack) {
+        for (ItemStack stack1 : array) {
+            if (stack1 != null && stack != null && stack.getItem() == stack1.getItem() && stack.getItemDamage() == stack1.getItemDamage()) return true;
+        }
+        return false;
+    }
+
+    public static boolean isArrayEmpty(ItemStack[] array) {
+        int emptySlots = 0;
+        for (int i = 0; i < array.length;i++) {
+            if (array[i] == null) emptySlots++;
+        }
+        return emptySlots == array.length;
     }
 
 }

@@ -39,7 +39,12 @@ public class GuiFilter extends GuiContainer{
     protected void actionPerformed(GuiButton button) {
         switch(button.id) {
             case 1:
-                PacketHandler.INSTANCE.sendToServer(new FilterChangeTypePacket(te,te.getFilterType()));
+                PacketHandler.INSTANCE.sendToServer(new FilterChangeTypePacket(te,te.getFilterType(),te.getWorldObj().provider.dimensionId));
+                if (te.getFilterType() == 0) {
+                    te.setFilterType(1);
+                } else {
+                    te.setFilterType(0);
+                }
                 break;
         }
     }

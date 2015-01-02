@@ -1,6 +1,5 @@
 package mc.Mitchellbrine.wip.block.conduit.logic;
 
-
 import cpw.mods.fml.common.eventhandler.Event;
 import mc.Mitchellbrine.wip.tileentity.TileEntityConduit;
 import net.minecraft.item.ItemStack;
@@ -8,9 +7,9 @@ import net.minecraft.item.ItemStack;
 import java.util.ArrayList;
 
 /**
- * Created by Mitchellbrine on 2014.
+ * Created by Mitchellbrine on 2015.
  */
-public class InventoryTypeChangeEvent extends Event {
+public class InventoryTypeInventoryEvent extends Event {
 
     /**
      * The conduit from which the event is firing from (you can handle inventory manipulation with this)
@@ -27,20 +26,22 @@ public class InventoryTypeChangeEvent extends Event {
      */
     public int x, y, z;
 
-
-    /**
-     * The ItemStacks being pulled by conduit. This is what is seen after the filter has taken effect. Use the InventoryTypeInventoryEvent for altering filtering.
-     */
     public ArrayList<ItemStack> stacks;
 
-     public InventoryTypeChangeEvent(TileEntityConduit conduit, InventoryType type, int x, int y, int z, ArrayList<ItemStack> stacks) {
+    public InventoryTypeInventoryEvent(TileEntityConduit conduit, InventoryType type, int x, int y, int z) {
         this.tileEntityConduit = conduit;
         this.inventoryType = type;
         this.x = x;
         this.y = y;
         this.z = z;
-        this.stacks = stacks;
     }
 
+    /**
+     * This is what is used in TileEntityConduit.getItemStacksToPull()
+     * @return the ItemStacks which fit the filter correctly
+     */
+    public ArrayList<ItemStack> getItemsToPull() {
+        return stacks;
+    }
 
 }

@@ -47,6 +47,14 @@ public class RecipeUtils {
 
         GameRegistry.addRecipe(new ItemStack(ItemRegistry.gps),"LS ","RRR","  R",'L',Blocks.redstone_torch,'S',Items.redstone,'R',new ItemStack(Blocks.wool,1,14));
 
+        if (ConfigUtils.useHardcoreRecipes) {
+            GameRegistry.addRecipe(new ItemStack(ItemRegistry.blankModule),"SPS","IHI","SPS",'I',Blocks.iron_block,'P',Items.paper,'S',Items.string,'H',Blocks.hopper);
+        } else {
+            GameRegistry.addRecipe(new ItemStack(ItemRegistry.blankModule),"SPS","IHI","SPS",'I',Items.iron_ingot,'P',Items.paper,'S',Items.string,'H',Blocks.hopper);
+        }
+
+        GameRegistry.addShapelessRecipe(new ItemStack(ItemRegistry.moduleFilter), ItemRegistry.blankModule, Items.fishing_rod);
+
     }
 
 }

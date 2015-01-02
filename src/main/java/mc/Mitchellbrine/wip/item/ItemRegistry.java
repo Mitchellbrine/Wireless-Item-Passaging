@@ -17,10 +17,18 @@ public class ItemRegistry {
     public static Item gps;
     public static Item wirelessTransportCore;
 
+    public static Item blankModule;
+    public static Item moduleFilter;
+    //public static Item moduleSecurity;
+
     public static void init() {
 
         gps = new ItemGPS();
         wirelessTransportCore = new ItemShiny().setMaxStackSize(1).setUnlocalizedName("wipCore").setTextureName(References.RESOURCEPREFIX + "wipCore");
+
+        blankModule = new ItemNP().setMaxStackSize(1).setUnlocalizedName("wipModule").setTextureName(References.RESOURCEPREFIX + "wipModule");
+        moduleFilter = new ItemNP().setMaxStackSize(1).setUnlocalizedName("wipModuleFilter").setTextureName(References.RESOURCEPREFIX + "wipModuleFilter");
+
 
         for (Item item : items) {
             GameRegistry.registerItem(item,item.getUnlocalizedName().substring(5));

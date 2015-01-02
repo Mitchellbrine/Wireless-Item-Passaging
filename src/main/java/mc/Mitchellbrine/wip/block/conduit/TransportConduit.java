@@ -14,6 +14,9 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 /**
@@ -42,7 +45,24 @@ public class TransportConduit extends WIPTEBlock {
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
         if (!player.isSneaking()) {
-            if (player.getCurrentEquippedItem() == null || player.getCurrentEquippedItem().getItem() != ItemRegistry.gps) {
+            if (player.getCurrentEquippedItem() == null || player.getCurrentEquippedItem().getItem() != ItemRegistry.gps || player.getCurrentEquippedItem().getItem() != ItemRegistry.moduleFilter) {
+
+                if (player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().getItem() == ItemRegistry.moduleFilter) {
+                    TileEntityConduit te = (TileEntityConduit) world.getTileEntity(x,y,z);
+                    if (te != null) {
+                        if (!te.isFilterInstalled()) {
+                            te.setFilterInstalled(true);
+                            if (!player.capabilities.isCreativeMode) {
+                                player.setCurrentItemOrArmor(0, null);
+                            }
+                            if (world.isRemote) {
+                                player.addChatComponentMessage(new ChatComponentTranslation("conduit.module.installed.filter").setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GRAY).setItalic(true)));
+                            }
+                            return true;
+                        }
+                    }
+                }
+
                 if (!world.isRemote) {
                     if (player instanceof EntityPlayerMP) {
                         TileEntityConduit te = (TileEntityConduit) world.getTileEntity(x,y,z);
@@ -55,10 +75,23 @@ public class TransportConduit extends WIPTEBlock {
                 return true;
             }
         } else {
-            if (player.getCurrentEquippedItem() == null || player.getCurrentEquippedItem().getItem() != ItemRegistry.gps) {
+            if (player.getCurrentEquippedItem() == null || player.getCurrentEquippedItem().getItem() != ItemRegistry.gps || player.getCurrentEquippedItem().getItem() != ItemRegistry.moduleFilter) {
                 /*if (!world.isRemote) {
                 } */
-                player.openGui(WirelessItemPassaging.instance, GuiHandler.IDS.ItemFilter,world,x,y,z);
+
+
+
+
+                TileEntityConduit te = (TileEntityConduit) world.getTileEntity(x,y,z);
+                if (te != null) {
+                    if (te.isFilterInstalled()) {
+                        player.openGui(WirelessItemPassaging.instance, GuiHandler.IDS.ItemFilter, world, x, y, z);
+                    } else {
+                        if (!world.isRemote) {
+                            player.addChatComponentMessage(new ChatComponentTranslation("conduit.module.nonExist").setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GRAY).setItalic(true)));
+                        }
+                    }
+                }
             }
         }
         return false;
